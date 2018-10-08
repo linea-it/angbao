@@ -1,4 +1,4 @@
-""" loadreddat.py --- Load & Reduction data routines
+""" loadreddat.py --- load and reduce input datasets
 """
 from __future__ import (print_function)
 from numpy import (array, loadtxt, concatenate, mean, cov)
