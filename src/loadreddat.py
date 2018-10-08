@@ -1,6 +1,6 @@
 """ loadreddat.py --- Load & Reduction data routines
 """
-from __future__ import print_function
+from __future__ import (print_function)
 from numpy import (array, loadtxt, concatenate, mean, cov)
 from numpy.linalg import (inv, block_diag)
 from scipy.interpolate import (InterpolatedUnivariateSpline)

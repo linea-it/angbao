@@ -1,14 +1,12 @@
 """ mle.py --- Maximum Likelihood Estimator routines
 """
-from __future__ import print_function
-from sys import argv
+from __future__ import (print_function)
 from numpy import (array, exp, dot, concatenate, argmin, zeros, diag)
-from numpy.linalg import (inv)
-from scipy.linalg import block_diag
-from lnlike import lnprob
-from minimization import find_tempamp
-from scipy.optimize import minimize
-from sys import stderr
+from numpy.linalg import (inv, block_diag)
+from lnlike import (lnprob)
+from minimization import (find_tempamp)
+from scipy.optimize import (minimize)
+from sys import (argv, stderr)
 
 
 def design_matrix_A3B0_(a, x, model, template='wg',
