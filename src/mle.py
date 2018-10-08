@@ -1,3 +1,5 @@
+""" mle.py --- Maximum Likelihood Estimator routines
+"""
 from __future__ import print_function
 from sys import argv
 from numpy import (array, exp, dot, concatenate, argmin, zeros, diag)
@@ -13,7 +15,7 @@ def design_matrix_A3B0_(a, x, model, template='wg',
                         r_zmean=[1697.151505201687, 1904.8679873075332,
                                  2104.755175184404, 2299.5412779720123],
                         **kwargs):
-    """Construtct design matrix for aA3B0 fit
+    """Construct design matrix for aA3B0 fit
     """
     nw_spline = model['apsnw']
     if template == 'wg':
