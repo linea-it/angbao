@@ -10,14 +10,15 @@ from scipy.interpolate import (InterpolatedUnivariateSpline)
 from os.path import (isfile)
 
 
-def loadreddat(measfn,
-               kind='A0B1', data='y1',
+def loadreddat(measfn, tempfn, kind='A0B1', data='y1',
                **kwargs):
     """Reduce datasets for aB0A3 modeling
     Arguments
     ---------
     measfn: str [CSV format]
-        Input dataset filename.
+        Input measurements dataset filename.
+    tempfn: str [CSV format]
+        Input model dataset filename.
     kind: str
         Desired kind of fit.
     data: str
@@ -39,8 +40,11 @@ def loadreddat(measfn,
         Pieces for model APS, apswg and apsnw splined.
     """
     # Load datasets
-    print("Loading dataset", ifn)
+    print("Loading datasets:", end=' ')
+    print(measfn, ",", sep='', end=' ')
     cldf = read_csv(measfn, index_col=0, header=[0, 1])
+    print(modelfn)
+    tpdf = read_csv(tempfn, index_col=0, header=[0, 1])
 
     # Scales
     if 'xlim' in kwargs:    # cuts
@@ -90,12 +94,12 @@ def loadreddat(measfn,
         icc *= (1. - D)
 
     # Model
-    ofn = "%s/aps_templates_mc_sm-nw_rsd.dat" % (pkd)
-    laps = loadtxt(ofn, usecols=[0], unpack=True)
-    apswg = loadtxt(ofn, usecols=[1, 2, 3, 4], unpack=True).tolist()
-    apswg = [array(aps) for aps in apswg]
-    apsnw = loadtxt(ofn, usecols=[5, 6, 7, 8], unpack=True).tolist()
-    apsnw = [array(aps) for aps in apsnw]
+    laps = tpdf.index.values
+    # Here we deconstruct pandas.DataFrame into list of numpy.array
+    apswg = tpdf.xs('wg', level='type', axis=1).values
+    apswg = [apswg[:, i] for i in range(apswg.shape[1]]
+    apsnw = tpdf.xs('nw', level='type', axis=1).values
+    apsnw = [apsnw[:, i] for i in range(apsnw.shape[1]]
     model = {'apswg': [InterpolatedUnivariateSpline(laps, wg)
                        for wg in apswg],
              'apsnw': [InterpolatedUnivariateSpline(laps, nw)
@@ -105,18 +109,4 @@ def loadreddat(measfn,
 
 
 if __name__ == '__main__':
-    dl, lmin, lmax = 20, 60, 290
-    kind = 'aA2B0'
-    data = 'y1'
-    nooutl = False
-    Sigma = 5.6
-    hc = True
-    template = 'wg'
-    B0prior = True
-    fullcov = False
-
-    ll, dd, icc, model = reduce_datasets_all(dl, lmin, lmax,
-                                             kind=kind, data=data,
-                                             nooutl=nooutl,
-                                             Sigma=Sigma, hc=hc,
-                                             fullcov=fullcov)
+    print("Testing")
