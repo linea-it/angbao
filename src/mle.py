@@ -171,6 +171,7 @@ def profiled_likelihood(alpha, xd, yd, icov, model, template='wg',
         chi2.append(c2)
 
     imin = argmin(chi2)
+    print("Minimum found at:", end=' ')
     print(chi2[imin], "/", len(xd) * len(xd[0]) - len(th), theta[imin])
 
     out = concatenate((array(theta),

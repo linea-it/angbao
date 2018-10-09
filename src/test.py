@@ -2,7 +2,8 @@
 """
 from loadreddat import loadreddat
 from mle import profiled_likelihood
-from numpy import (linspace, savetxt, concatenate)
+from numpy import (linspace, concatenate)
+from pandas import (DataFrame)
 from sys import (argv)
 
 
@@ -32,5 +33,7 @@ if __name__ == '__main__':
     out_red = concatenate((out,
                            out[:, -1].reshape(out.shape[0], 1) / dof),
                           axis=1)
-    savetxt(ofn, out_red, fmt='%le',
-            header="alpha [nuiscence]x4 chi2 chi2_red")
+    names = ['alpha']\
+            + ['nuis%d' % (i) for i in range(out_red.shape[1] - 3)]\
+            + ['chi2', 'chi2_red']
+    DataFrame(data=out_red, columns=names).set_index('alpha').to_csv(ofn)
