@@ -64,6 +64,7 @@ def loadreddat(measfn, tempfn, data='y1', **kwargs):
         print("Selecting datavector:", data)
         dd = cldf.xs(data, level='data', axis=1)
         dd = [dd[iz].values for iz in dd.columns]
+    dd = concatenate(dd)    # The full datavector! 
 
     # Covariance
     if 'covfn' in kwargs:
