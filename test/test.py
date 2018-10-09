@@ -1,7 +1,6 @@
 """ test.py --- Simple test suite
 """
-from loadreddat import loadreddat
-from mle import profiled_likelihood
+from angbao import (loadreddat, profiled_likelihood)
 from numpy import (linspace, concatenate)
 from pandas import (DataFrame)
 from sys import (argv)

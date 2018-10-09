@@ -6,7 +6,7 @@ from numpy import (array, dot, concatenate, argmin)
 from numpy.linalg import (inv)
 from scipy.linalg import (block_diag)
 from scipy.optimize import (minimize)
-from lnlike import (lnprob)
+from angbao import (lnprob)
 
 
 def design_matrix(a, x, model, template='wg', kind='aA1B0', **kwargs):
