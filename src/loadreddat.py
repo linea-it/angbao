@@ -1,17 +1,17 @@
 """ loadreddat.py --- load and reduce input datasets
+    - Construct/computes datavector and precision matrix.
+    - Interpolate templates.
 """
 from __future__ import (print_function)
 from numpy import (load)
-from pandas import (read_csv)
-from numpy import (array, loadtxt, concatenate, mean, cov)
-from numpy import where
-from numpy.linalg import (inv, block_diag)
+from pandas import (read_csv, concat)
+from numpy import (concatenate, cov, where)
+from numpy.linalg import (inv)
+from scipy.linalg import (block_diag)
 from scipy.interpolate import (InterpolatedUnivariateSpline)
-from os.path import (isfile)
 
 
-def loadreddat(measfn, tempfn, kind='A0B1', data='y1',
-               **kwargs):
+def loadreddat(measfn, tempfn, data='y1', **kwargs):
     """Reduce datasets for aB0A3 modeling
     Arguments
     ---------
@@ -19,8 +19,6 @@ def loadreddat(measfn, tempfn, kind='A0B1', data='y1',
         Input measurements dataset filename.
     tempfn: str [CSV format]
         Input model dataset filename.
-    kind: str
-        Desired kind of fit.
     data: str
         Select column of dataset to befined as the data.
         If 'mean' -> the mean of 'mock<N>' names is considered.
@@ -43,31 +41,36 @@ def loadreddat(measfn, tempfn, kind='A0B1', data='y1',
     print("Loading datasets:", end=' ')
     print(measfn, ",", sep='', end=' ')
     cldf = read_csv(measfn, index_col=0, header=[0, 1])
-    print(modelfn)
+    print(tempfn)
     tpdf = read_csv(tempfn, index_col=0, header=[0, 1])
 
     # Scales
     if 'xlim' in kwargs:    # cuts
-        cldf = cldf.query("%lf<ell<%lf" % xlim)
+        print("Applying scale-cuts:", "%lf<ell<%lf" % kwargs['xlim'])
+        cldf = cldf.query("%lf<ell<%lf" % kwargs['xlim'])
     ll = [cldf[iz].index.values for iz in cldf.columns.levels[0]]
 
     # Mocks
     mock = cldf.drop(labels='y1', level='data', axis=1)
     mock = [mock[iz] for iz in mock.columns.levels[0]]
-    nb = cov.shape[0]       # No. bins
-    ns = mock[0].shape[1]   # No. mock samples
+    nb = sum([len(l) for l in ll])  # No. bins
+    ns = mock[0].shape[1]           # No. mock samples
 
     # Data
     if data == 'mean':
+        print("Selecting datavector: mean of mocks")
         dd = [m.mean(axis=1).values for m in mock]
     else:
+        print("Selecting datavector:", data)
         dd = cldf.xs(data, level='data', axis=1)
-        dd = [dd[iz].values for iz in data.columns]
+        dd = [dd[iz].values for iz in dd.columns]
 
     # Covariance
     if 'covfn' in kwargs:
+        print("Loading covariance dataset:", kwargs['covfn'])
         cov = load(kwargs['covfn'])
         if 'xlim' in kwargs:    # scale cuts
+            print("Applying scale-cuts to input cov")
             lmask = [(l > kwargs['xlim'][0]) * (l < kwargs['xlim'][1])
                      for l in ll]
             dshell = covar.shape[0] / len(ll)
@@ -77,12 +80,15 @@ def loadreddat(measfn, tempfn, kind='A0B1', data='y1',
             cov = cov[mtmp, :]
             cov = cov[:, mtmp]
     else:
-        if kwargs['blockcov']:
+        if 'blockcov' in kwargs and kwargs['blockcov']:
+            print("Selecting block-diagonal cov from mocks")
             cov = block_diag(*[m.T.cov().values for m in mock])
         else:
+            print("Selecting full cov from mocks")
             cov = concat(mock).T.cov().values
 
     # Precision
+    print("Computing prec. matrix")
     icc = inv(cov)
 
     # De-bias inverse covariance matrix
@@ -94,12 +100,13 @@ def loadreddat(measfn, tempfn, kind='A0B1', data='y1',
         icc *= (1. - D)
 
     # Model
+    print("Interpolating templates")
     laps = tpdf.index.values
     # Here we deconstruct pandas.DataFrame into list of numpy.array
     apswg = tpdf.xs('wg', level='type', axis=1).values
-    apswg = [apswg[:, i] for i in range(apswg.shape[1]]
+    apswg = [apswg[:, i] for i in range(apswg.shape[1])]
     apsnw = tpdf.xs('nw', level='type', axis=1).values
-    apsnw = [apsnw[:, i] for i in range(apsnw.shape[1]]
+    apsnw = [apsnw[:, i] for i in range(apsnw.shape[1])]
     model = {'apswg': [InterpolatedUnivariateSpline(laps, wg)
                        for wg in apswg],
              'apsnw': [InterpolatedUnivariateSpline(laps, nw)
@@ -110,3 +117,6 @@ def loadreddat(measfn, tempfn, kind='A0B1', data='y1',
 
 if __name__ == '__main__':
     print("Testing")
+    ll, dd, icc, model = loadreddat(
+        '../dat/apsmeasurements_nside1024_dl15lmin0lmax450.csv.gz',
+        '../dat/apstemplates_mc_rsd.csv.gz')
