@@ -1,5 +1,5 @@
-""" test.py --- Simple test suite
-"""
+#!/usr/bin/env python
+
 from angbao import (loadreddat, profiled_likelihood)
 from numpy import (linspace, concatenate)
 from pandas import (DataFrame)
